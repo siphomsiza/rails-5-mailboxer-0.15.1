@@ -68,6 +68,10 @@ class Mailboxer::Mailbox
     conversations(options)
   end
 
+  def draft(options={})
+    options = options.merge(:mailbox_type => 'draft')
+    conversations(options)
+  end
   #Returns all the receipts of messageable, from Messages and Notifications
   def receipts(options = {})
     Mailboxer::Receipt.where(options).recipient(messageable)
@@ -120,6 +124,8 @@ class Mailboxer::Mailbox
       Mailboxer::Conversation.inbox(messageable)
     when 'sentbox'
       Mailboxer::Conversation.sentbox(messageable)
+    when 'draft'
+      Mailboxer::Conversation.draft(messageable)
     when 'trash'
       Mailboxer::Conversation.trash(messageable)
     when  'not_trash'

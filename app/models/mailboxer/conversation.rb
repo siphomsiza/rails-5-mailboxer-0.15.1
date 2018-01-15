@@ -26,6 +26,9 @@ class Mailboxer::Conversation < ActiveRecord::Base
   scope :trash, lambda {|participant|
     participant(participant).merge(Mailboxer::Receipt.trash)
   }
+  scope :draft, lambda {|participant|
+    participant(participant).merge(Mailboxer::Receipt.draft)
+  }
   scope :unread,  lambda {|participant|
     participant(participant).merge(Mailboxer::Receipt.is_unread)
   }

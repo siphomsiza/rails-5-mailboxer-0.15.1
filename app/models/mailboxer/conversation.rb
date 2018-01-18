@@ -5,7 +5,10 @@ class Mailboxer::Conversation < ActiveRecord::Base
 
   has_many :opt_outs, :dependent => :destroy, :class_name => "Mailboxer::Conversation::OptOut"
   has_many :messages, :dependent => :destroy, :class_name => "Mailboxer::Message"
-  has_many :receipts, :through => :messages,  :class_name => "Mailboxer::Receipt"
+  has_many :receipts, :through => :messages,  :class_name => "Mailboxer::Receipt", :dependent => :destroy
+  has_many :notifications, :dependent => :destroy, :class_name => "Mailboxer::Notification"
+
+  accepts_nested_attributes_for :messages, allow_destroy: true
 
   validates :subject, :presence => true,
                       :length => { :maximum => Mailboxer.subject_max_length }
@@ -18,22 +21,25 @@ class Mailboxer::Conversation < ActiveRecord::Base
     joins(:receipts).merge(Mailboxer::Receipt.recipient(participant)).distinct
   }
   scope :inbox, lambda {|participant|
-    participant(participant).merge(Mailboxer::Receipt.inbox.not_trash.not_deleted)
+    participant(participant).merge(Mailboxer::Receipt.inbox.not_trash.not_deleted.not_draft)
   }
   scope :sentbox, lambda {|participant|
-    participant(participant).merge(Mailboxer::Receipt.sentbox.not_trash.not_deleted)
+    participant(participant).merge(Mailboxer::Receipt.sentbox.not_trash.not_deleted.not_draft)
   }
   scope :trash, lambda {|participant|
     participant(participant).merge(Mailboxer::Receipt.trash)
   }
   scope :draft, lambda {|participant|
-    participant(participant).merge(Mailboxer::Receipt.draft)
+    participant(participant).merge(Mailboxer::Receipt.draft.not_trash.not_deleted)
   }
   scope :unread,  lambda {|participant|
     participant(participant).merge(Mailboxer::Receipt.is_unread)
   }
   scope :not_trash,  lambda {|participant|
     participant(participant).merge(Mailboxer::Receipt.not_trash)
+  }
+  scope :not_draft,  lambda {|participant|
+    participant(participant).merge(Mailboxer::Receipt.not_draft)
   }
   scope :not_deleted,  lambda {|participant|
     participant(participant).merge(Mailboxer::Receipt.not_deleted)
